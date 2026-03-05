@@ -144,7 +144,7 @@ const Pets = () => {
   const renderSkeletons = () => (
     <Grid container spacing={3}>
       {[...Array(12)].map((_, i) => (
-        <Grid item xs={12} sm={6} md={4} lg={3} key={i}>
+        <Grid key={i} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
           <Skeleton variant="rectangular" height={300} />
         </Grid>
       ))}
@@ -199,7 +199,7 @@ const Pets = () => {
       {showFilters && (
         <Box sx={{ mb: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Animal Type</InputLabel>
                 <Select
@@ -207,6 +207,7 @@ const Pets = () => {
                   value={filters.animalTypeId}
                   label="Animal Type"
                   onChange={handleFilterChange}
+                  MenuProps={{ sx: { maxWidth: 300 } }}
                 >
                   <MenuItem value="">All</MenuItem>
                   {animalTypes.map((type) => (
@@ -217,7 +218,7 @@ const Pets = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Breed</InputLabel>
                 <Select
@@ -225,6 +226,7 @@ const Pets = () => {
                   value={filters.breedId}
                   label="Breed"
                   onChange={handleFilterChange}
+                  MenuProps={{ sx: { maxWidth: 300 } }}
                 >
                   <MenuItem value="">All</MenuItem>
                   {filteredBreeds.map((breed) => (
@@ -235,7 +237,7 @@ const Pets = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} md={2}>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Gender</InputLabel>
                 <Select
@@ -250,7 +252,7 @@ const Pets = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} md={2}>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Age Group</InputLabel>
                 <Select
@@ -266,7 +268,7 @@ const Pets = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={2}>
+            <Grid size={{ xs: 12, md: 2 }}>
               <Button variant="outlined" onClick={clearFilters} fullWidth>
                 Clear Filters
               </Button>
@@ -286,7 +288,7 @@ const Pets = () => {
         <>
           <Grid container spacing={3}>
             {pets.map((pet) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={pet.id_pet}>
+              <Grid key={pet.id_pet} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
                 <PetCard pet={pet} />
               </Grid>
             ))}
@@ -300,14 +302,10 @@ const Pets = () => {
               color="primary"
             />
           </Box>
-
-          <Typography variant="body2" align="center" sx={{ mt: 2 }}>
-            Total: {total} pets
-          </Typography>
         </>
       )}
 
-      {/* Модальное окно добавления животного (заглушка, позже реализуем детально) */}
+      {/* Модальное окно добавления животного (заглушка) */}
       <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Add New Pet</DialogTitle>
         <DialogContent>

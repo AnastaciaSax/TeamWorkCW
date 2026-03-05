@@ -1,6 +1,5 @@
 import {
   Card,
-  CardMedia,
   CardContent,
   Typography,
   CardActions,
@@ -16,24 +15,37 @@ import FemaleIcon from '@mui/icons-material/Female';
 const PetCard = ({ pet }) => {
   const navigate = useNavigate();
 
-  // Формируем путь к фото: если есть main_photo_url, добавляем базовый путь /assets/photos/
   const photoPath = pet.main_photo_url ? `/assets/photos/${pet.main_photo_url}` : null;
 
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <CardMedia
-        component={photoPath ? 'img' : 'div'}
-        sx={{
-          height: 200,
-          backgroundColor: '#f0f0f0',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        image={photoPath}
-      >
-        {!photoPath && <PetsIcon sx={{ fontSize: 80, color: '#aaa' }} />}
-      </CardMedia>
+      {/* Верхняя часть с фото или иконкой */}
+      {photoPath ? (
+        <Box
+          component="img"
+          src={photoPath}
+          alt={pet.pet_name}
+          sx={{
+            height: 200,
+            width: '100%',
+            objectFit: 'cover',
+            backgroundColor: '#f0f0f0',
+          }}
+        />
+      ) : (
+        <Box
+          sx={{
+            height: 200,
+            backgroundColor: '#f0f0f0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <PetsIcon sx={{ fontSize: 80, color: '#aaa' }} />
+        </Box>
+      )}
+
       <CardContent sx={{ flexGrow: 1 }}>
         <Typography gutterBottom variant="h5" component="div">
           {pet.pet_name}
@@ -48,21 +60,6 @@ const PetCard = ({ pet }) => {
             <FemaleIcon fontSize="small" sx={{ color: '#e91e63', mr: 0.5 }} />
           )}
           <Typography variant="body2">{pet.gender || 'Unknown'}</Typography>
-        </Box>
-        <Box sx={{ mt: 1 }}>
-          <Chip
-            label={`Owner: ${pet.owner_name}`}
-            size="small"
-            variant="outlined"
-            sx={{ mr: 0.5, mb: 0.5 }}
-          />
-          {pet.birthdate && (
-            <Chip
-              label={`Born: ${new Date(pet.birthdate).toLocaleDateString()}`}
-              size="small"
-              variant="outlined"
-            />
-          )}
         </Box>
       </CardContent>
       <CardActions>
