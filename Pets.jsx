@@ -49,8 +49,18 @@ const Pets = () => {
   });
   const [animalTypes, setAnimalTypes] = useState([]);
   const [breeds, setBreeds] = useState([]);
+  const [owners, setOwners] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    pet_name: '',
+    birthdate: '',
+    gender: '',
+    unique_traits: '',
+    id_owner: '',
+    id_breed: '',
+  });
+  const [formErrors, setFormErrors] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const debouncedSearch = useDebounce(search, 500);
@@ -73,27 +83,28 @@ const Pets = () => {
   }, []);
 
   // Загрузка животных
+  const fetchPets = async () => {
+    setLoading(true);
+    try {
+      const params = {
+        page,
+        limit: 8,
+        search: debouncedSearch,
+        ...filters,
+      };
+      const response = await API.get('/pets', { params });
+      setPets(response.data.data);
+      setTotalPages(response.data.pagination.totalPages);
+      setTotal(response.data.pagination.total);
+    } catch (error) {
+      console.error(error);
+      showSnackbar('Error loading pets', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchPets = async () => {
-      setLoading(true);
-      try {
-        const params = {
-          page,
-          limit: 12,
-          search: debouncedSearch,
-          ...filters,
-        };
-        const response = await API.get('/pets', { params });
-        setPets(response.data.data);
-        setTotalPages(response.data.pagination.totalPages);
-        setTotal(response.data.pagination.total);
-      } catch (error) {
-        console.error(error);
-        showSnackbar('Error loading pets', 'error');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchPets();
   }, [page, debouncedSearch, filters]);
 
@@ -135,15 +146,77 @@ const Pets = () => {
     setPage(value);
   };
 
-  // Фильтрованные породы по выбранному виду
   const filteredBreeds = filters.animalTypeId
     ? breeds.filter((b) => b.id_animal_type === parseInt(filters.animalTypeId))
     : breeds;
 
-  // Скелетоны загрузки
+  const handleDeletePet = (deletedId) => {
+    setPets(pets.filter(p => p.id_pet !== deletedId));
+    // Можно также обновить total, пересчитав страницы, но для простоты перезагрузим первую страницу
+    if (page === 1) fetchPets();
+    else setPage(1);
+  };
+
+  // Модалка добавления
+  const openAddModal = async () => {
+    try {
+      const ownersRes = await API.get('/owners', { params: { limit: 100 } });
+      setOwners(ownersRes.data.data);
+    } catch (err) {
+      console.error('Failed to load owners', err);
+    }
+    setFormData({
+      pet_name: '',
+      birthdate: '',
+      gender: '',
+      unique_traits: '',
+      id_owner: '',
+      id_breed: '',
+    });
+    setFormErrors({});
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+  };
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.pet_name.trim()) errors.pet_name = 'Name is required';
+    if (!formData.birthdate) errors.birthdate = 'Birthdate is required';
+    if (!formData.gender) errors.gender = 'Gender is required';
+    if (!formData.id_owner) errors.id_owner = 'Owner is required';
+    if (!formData.id_breed) errors.id_breed = 'Breed is required';
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleAddPet = async () => {
+    if (!validateForm()) return;
+    try {
+      await API.post('/pets', formData);
+      showSnackbar('Pet added successfully');
+      closeModal();
+      setPage(1);
+      fetchPets(); // обновить список
+    } catch (err) {
+      console.error(err);
+      showSnackbar('Error adding pet', 'error');
+    }
+  };
+
   const renderSkeletons = () => (
     <Grid container spacing={3}>
-      {[...Array(12)].map((_, i) => (
+      {[...Array(8)].map((_, i) => (
         <Grid key={i} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
           <Skeleton variant="rectangular" height={300} />
         </Grid>
@@ -155,16 +228,11 @@ const Pets = () => {
     <Paper sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h4">Pets</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setModalOpen(true)}
-        >
+        <Button variant="contained" startIcon={<AddIcon />} onClick={openAddModal}>
           Add Pet
         </Button>
       </Box>
 
-      {/* Поиск и фильтры */}
       <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
         <TextField
           sx={{ flexGrow: 1 }}
@@ -173,16 +241,10 @@ const Pets = () => {
           value={search}
           onChange={handleSearchChange}
           InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
+            startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment>,
             endAdornment: search && (
               <InputAdornment position="end">
-                <IconButton onClick={clearSearch} edge="end">
-                  <ClearIcon />
-                </IconButton>
+                <IconButton onClick={clearSearch} edge="end"><ClearIcon /></IconButton>
               </InputAdornment>
             ),
           }}
@@ -210,10 +272,8 @@ const Pets = () => {
                   MenuProps={{ sx: { maxWidth: 300 } }}
                 >
                   <MenuItem value="">All</MenuItem>
-                  {animalTypes.map((type) => (
-                    <MenuItem key={type.id_type} value={type.id_type}>
-                      {type.type}
-                    </MenuItem>
+                  {animalTypes.map(type => (
+                    <MenuItem key={type.id_type} value={type.id_type}>{type.type}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -229,9 +289,9 @@ const Pets = () => {
                   MenuProps={{ sx: { maxWidth: 300 } }}
                 >
                   <MenuItem value="">All</MenuItem>
-                  {filteredBreeds.map((breed) => (
+                  {filteredBreeds.map(breed => (
                     <MenuItem key={breed.id_breed} value={breed.id_breed}>
-                      {breed.breed_name}
+                      {breed.breed_name} ({breed.animal_type_name})
                     </MenuItem>
                   ))}
                 </Select>
@@ -277,42 +337,114 @@ const Pets = () => {
         </Box>
       )}
 
-      {/* Результаты */}
       {loading ? (
         renderSkeletons()
       ) : pets.length === 0 ? (
-        <Typography align="center" sx={{ py: 4 }}>
-          No pets found.
-        </Typography>
+        <Typography align="center" sx={{ py: 4 }}>No pets found.</Typography>
       ) : (
         <>
           <Grid container spacing={3}>
-            {pets.map((pet) => (
+            {pets.map(pet => (
               <Grid key={pet.id_pet} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-                <PetCard pet={pet} />
+                <PetCard pet={pet} onDelete={handleDeletePet} />
               </Grid>
             ))}
           </Grid>
-
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={handlePageChange}
-              color="primary"
-            />
+            <Pagination count={totalPages} page={page} onChange={handlePageChange} color="primary" />
           </Box>
         </>
       )}
 
-      {/* Модальное окно добавления животного (заглушка) */}
-      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
+      {/* Модальное окно добавления питомца */}
+      <Dialog open={modalOpen} onClose={closeModal} maxWidth="sm" fullWidth>
         <DialogTitle>Add New Pet</DialogTitle>
         <DialogContent>
-          <Typography>Form will be implemented later</Typography>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="pet_name"
+            label="Pet Name *"
+            fullWidth
+            value={formData.pet_name}
+            onChange={handleFormChange}
+            error={!!formErrors.pet_name}
+            helperText={formErrors.pet_name}
+          />
+          <TextField
+            margin="dense"
+            name="birthdate"
+            label="Birthdate *"
+            type="date"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            value={formData.birthdate}
+            onChange={handleFormChange}
+            error={!!formErrors.birthdate}
+            helperText={formErrors.birthdate}
+          />
+          <FormControl fullWidth margin="dense" error={!!formErrors.gender}>
+            <InputLabel>Gender *</InputLabel>
+            <Select
+              name="gender"
+              value={formData.gender}
+              label="Gender *"
+              onChange={handleFormChange}
+            >
+              <MenuItem value="">Select</MenuItem>
+              <MenuItem value="Male">Male</MenuItem>
+              <MenuItem value="Female">Female</MenuItem>
+            </Select>
+            {formErrors.gender && <Typography variant="caption" color="error">{formErrors.gender}</Typography>}
+          </FormControl>
+          <TextField
+            margin="dense"
+            name="unique_traits"
+            label="Unique Traits"
+            multiline
+            rows={2}
+            fullWidth
+            value={formData.unique_traits}
+            onChange={handleFormChange}
+          />
+          <FormControl fullWidth margin="dense" error={!!formErrors.id_owner}>
+            <InputLabel>Owner *</InputLabel>
+            <Select
+              name="id_owner"
+              value={formData.id_owner}
+              label="Owner *"
+              onChange={handleFormChange}
+            >
+              <MenuItem value="">Select</MenuItem>
+              {owners.map(owner => (
+                <MenuItem key={owner.id_owner} value={owner.id_owner}>
+                  {owner.owner_name}
+                </MenuItem>
+              ))}
+            </Select>
+            {formErrors.id_owner && <Typography variant="caption" color="error">{formErrors.id_owner}</Typography>}
+          </FormControl>
+          <FormControl fullWidth margin="dense" error={!!formErrors.id_breed}>
+            <InputLabel>Breed *</InputLabel>
+            <Select
+              name="id_breed"
+              value={formData.id_breed}
+              label="Breed *"
+              onChange={handleFormChange}
+            >
+              <MenuItem value="">Select</MenuItem>
+              {breeds.map(breed => (
+                <MenuItem key={breed.id_breed} value={breed.id_breed}>
+                  {breed.breed_name} ({breed.animal_type_name})
+                </MenuItem>
+              ))}
+            </Select>
+            {formErrors.id_breed && <Typography variant="caption" color="error">{formErrors.id_breed}</Typography>}
+          </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setModalOpen(false)}>Close</Button>
+          <Button onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleAddPet} variant="contained">Add</Button>
         </DialogActions>
       </Dialog>
 
