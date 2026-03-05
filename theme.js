@@ -3,11 +3,11 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#49715D', // брендовый цвет
-      contrastText: '#ffffff',
+      main: '#d4a971',
+      contrastText: '#1f4d3a',
     },
     secondary: {
-      main: '#f5a623', // оранжевый для акцентов (можно подобрать)
+      main: '#30a17b',
     },
     background: {
       default: '#f5f5f5',
@@ -15,7 +15,38 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    // Основной шрифт для всего текста
+    fontFamily: '"Montserrat", "Helvetica", "Arial", sans-serif',
+    // Заголовки используют Montserrat Alternates
+    h1: {
+      fontFamily: '"Montserrat Alternates", "Montserrat", "Helvetica", "Arial", sans-serif',
+      fontWeight: 600,
+    },
+    h2: {
+      fontFamily: '"Montserrat Alternates", "Montserrat", "Helvetica", "Arial", sans-serif',
+      fontWeight: 600,
+    },
+    h3: {
+      fontFamily: '"Montserrat Alternates", "Montserrat", "Helvetica", "Arial", sans-serif',
+      fontWeight: 600,
+    },
+    h4: {
+      fontFamily: '"Montserrat Alternates", "Montserrat", "Helvetica", "Arial", sans-serif',
+      fontWeight: 600,
+    },
+    h5: {
+      fontFamily: '"Montserrat Alternates", "Montserrat", "Helvetica", "Arial", sans-serif',
+      fontWeight: 600,
+    },
+    h6: {
+      fontFamily: '"Montserrat Alternates", "Montserrat", "Helvetica", "Arial", sans-serif',
+      fontWeight: 600,
+    },
+    button: {
+      fontFamily: '"Montserrat", "Helvetica", "Arial", sans-serif',
+      fontWeight: 500,
+      textTransform: 'none', // отключаем автоматический капс у кнопок (по желанию)
+    },
   },
   shape: {
     borderRadius: 8,
