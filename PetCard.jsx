@@ -16,13 +16,13 @@ import FemaleIcon from '@mui/icons-material/Female';
 const PetCard = ({ pet }) => {
   const navigate = useNavigate();
 
-  // Заглушка для фото, если нет – показываем иконку
-  const photoUrl = pet.photos_count > 0 ? `https://storage.example.com/pets/${pet.id_pet}/thumb.jpg` : null;
+  // Формируем путь к фото: если есть main_photo_url, добавляем базовый путь /assets/photos/
+  const photoPath = pet.main_photo_url ? `/assets/photos/${pet.main_photo_url}` : null;
 
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardMedia
-        component={photoUrl ? 'img' : 'div'}
+        component={photoPath ? 'img' : 'div'}
         sx={{
           height: 200,
           backgroundColor: '#f0f0f0',
@@ -30,9 +30,9 @@ const PetCard = ({ pet }) => {
           alignItems: 'center',
           justifyContent: 'center',
         }}
-        image={photoUrl}
+        image={photoPath}
       >
-        {!photoUrl && <PetsIcon sx={{ fontSize: 80, color: '#aaa' }} />}
+        {!photoPath && <PetsIcon sx={{ fontSize: 80, color: '#aaa' }} />}
       </CardMedia>
       <CardContent sx={{ flexGrow: 1 }}>
         <Typography gutterBottom variant="h5" component="div">
