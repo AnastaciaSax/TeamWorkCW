@@ -213,25 +213,28 @@ app.get('/api/pets', async (req, res) => {
     const values = [];
     let whereClause = 'WHERE 1=1';
 
+    // Фильтр по поиску (кличка)
     if (search) {
       values.push(`%${search}%`);
       whereClause += ` AND Pet.pet_name ILIKE $${values.length}`;
     }
+    // Фильтр по виду животного
     if (animalTypeId) {
       values.push(animalTypeId);
       whereClause += ` AND Breed.id_animal_type = $${values.length}`;
     }
+    // Фильтр по породе
     if (breedId) {
       values.push(breedId);
       whereClause += ` AND Pet.id_breed = $${values.length}`;
     }
+    // Фильтр по полу
     if (gender) {
       values.push(gender);
       whereClause += ` AND Pet.gender = $${values.length}`;
     }
-    // Возрастная группа вычисляется на основе birthdate
+    // Фильтр по возрастной группе
     if (ageGroup) {
-      const today = new Date().toISOString().split('T')[0];
       if (ageGroup === 'puppy') {
         whereClause += ` AND Pet.birthdate > (CURRENT_DATE - INTERVAL '1 year')`;
       } else if (ageGroup === 'young') {
@@ -241,7 +244,7 @@ app.get('/api/pets', async (req, res) => {
       }
     }
 
-    // Подсчёт общего количества
+    // Подсчёт общего количества (без LIMIT/OFFSET)
     const countQuery = `
       SELECT COUNT(*) FROM Pet
       JOIN Breed ON Pet.id_breed = Breed.id_breed
@@ -250,7 +253,7 @@ app.get('/api/pets', async (req, res) => {
     const countResult = await pool.query(countQuery, values);
     const total = parseInt(countResult.rows[0].count);
 
-    // Основной запрос с JOIN для получения породы, вида, владельца
+    // Основной запрос с получением главного фото и количества фото
     const dataQuery = `
       SELECT Pet.*,
         Breed.breed_name,
@@ -258,6 +261,7 @@ app.get('/api/pets', async (req, res) => {
         Animal_Type.type as animal_type_name,
         Owner.owner_name,
         Owner.phone as owner_phone,
+        (SELECT photo_url FROM Photo WHERE Photo.id_pet = Pet.id_pet ORDER BY upload_date LIMIT 1) as main_photo_url,
         (SELECT COUNT(*) FROM Photo WHERE Photo.id_pet = Pet.id_pet) as photos_count
       FROM Pet
       JOIN Breed ON Pet.id_breed = Breed.id_breed

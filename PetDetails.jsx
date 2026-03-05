@@ -208,30 +208,30 @@ const PetDetails = () => {
         </Tabs>
       </Box>
 
-      <TabPanel value={tabValue} index={0}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-          <Button startIcon={<AddPhotoIcon />} variant="contained" onClick={() => openModal('photo')}>
-            Add Photo
-          </Button>
-        </Box>
-        <Grid container spacing={2}>
-          {photos.map((photo) => (
-            <Grid item xs={6} sm={4} md={3} key={photo.id_photo}>
-              <Card>
-                <CardMedia
-                  component="img"
-                  height="150"
-                  image={photo.photo_url}
-                  alt="pet photo"
-                />
-              </Card>
-            </Grid>
-          ))}
-          {photos.length === 0 && (
-            <Typography sx={{ p: 2 }}>No photos yet.</Typography>
-          )}
-        </Grid>
-      </TabPanel>
+     <TabPanel value={tabValue} index={0}>
+  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+    <Button startIcon={<AddPhotoIcon />} variant="contained" onClick={() => openModal('photo')}>
+      Add Photo
+    </Button>
+  </Box>
+  <Grid container spacing={2}>
+    {photos.map((photo) => (
+      <Grid item xs={6} sm={4} md={3} key={photo.id_photo}>
+        <Card>
+          <CardMedia
+            component="img"
+            height="150"
+            image={`/assets/photos/${photo.photo_url}`}
+            alt="pet photo"
+          />
+        </Card>
+      </Grid>
+    ))}
+    {photos.length === 0 && (
+      <Typography sx={{ p: 2 }}>No photos yet.</Typography>
+    )}
+  </Grid>
+</TabPanel>
 
       <TabPanel value={tabValue} index={1}>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
