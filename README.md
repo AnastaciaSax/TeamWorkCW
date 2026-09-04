@@ -27,3 +27,6 @@ PawTel is a web application for managing a pet hotel. It provides a comprehensiv
 - npm or yarn
 ttps://github.com/yourusername/pawtel.git
    cd pawtel
+
+  ## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
